@@ -1,15 +1,13 @@
-# teleseerr
+# Teleseerr
 
-To install dependencies:
+Experimental Telegram bot integrated with Jellyseerr.
 
-```bash
-bun install
-```
+This project in early development stages.
 
-To run:
+## For Developers
 
-```bash
-bun run index.ts
-```
+To start developing this bot, follow these steps:
 
-This project was created using `bun init` in bun v1.1.12. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+Ensure Docker is installed on your system.
+Clone this repository.
+Use VSCode Dev Containers for development.
