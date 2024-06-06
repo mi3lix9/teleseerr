@@ -1,11 +1,23 @@
 {
   "name": "teleseerr",
-  "module": "index.ts",
+  "module": "src/index.ts",
   "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "gen": "bunx drizzle-kit generate",
+    "migrate": "bunx drizzle-kit migrate"
+  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@libsql/client": "^0.6.2",
+    "@types/bun": "latest",
+    "better-sqlite3": "^11.0.0",
+    "drizzle-kit": "^0.22.4"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.31.1",
+    "grammy": "^1.24.1"
   }
 }
