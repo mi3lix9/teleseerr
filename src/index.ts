@@ -1,4 +1,5 @@
-import { Bot } from "grammy";
+import { Bot, InlineKeyboard } from "grammy";
+import type { components } from "../types/overseerr";
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const JELLYSEERR_URL = process.env.JELLYSEERR_URL;
@@ -39,14 +40,39 @@ bot.command("jellyfin", async (ctx) => {
 
 bot.command("search", async (ctx) => {
   const match = ctx.match;
-  const res = await fetch(JELLYSEERR_URL + "/search/?query=" + match, {
-    headers: { "X-Api-Key": JELLYSEERR_KEY },
-  });
-  const json = await res.json();
-  console.log(json);
-  json.results.forEach((result) =>
-    ctx.reply(result.title || result.name + " " + result.mediaType)
+
+  const [result] = await search(match);
+
+  const keyboard = new InlineKeyboard()
+    .text("◀️", "prev")
+    .text("Request", "request")
+    .text("➡️", "next");
+
+  await ctx.replyWithPhoto(
+    "https://image.tmdb.org/t/p/w1920_and_h800_multi_faces//" +
+      result.posterPath!,
+    {
+      caption: result.overview,
+      reply_markup: keyboard,
+    }
   );
 });
 
 bot.start();
+
+async function search(title: string, language: string = "en") {
+  const res = await fetch(
+    JELLYSEERR_URL +
+      "/search/?query=" +
+      title +
+      "&page=1" +
+      "&language=" +
+      language,
+    {
+      headers: { "X-Api-Key": JELLYSEERR_KEY! },
+    }
+  );
+  const json = await res.json();
+  return json.results as (components["schemas"]["TvResult"] &
+    components["schemas"]["MovieResult"])[];
+}
