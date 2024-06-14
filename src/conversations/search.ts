@@ -1,16 +1,18 @@
 import { InlineKeyboard } from "grammy";
-import env from "../../env";
 import type { components } from "../../types/overseerr";
-import type { MyContext, MyConversation } from "..";
-import { z } from "zod";
-
-const { JELLYSEERR_KEY, JELLYSEERR_URL } = env;
+import { fetchFromJellyseerr } from "../utils/fetchFromJellyseerr";
+import { SearchInput, SearchOutput } from "../zodSchema";
+import { createTemplate } from "../utils/createTemplate";
+import type { MyConversation, MyContext } from "../utils/types";
 
 const keyboard = new InlineKeyboard()
   .text("◀️", "prev")
   .text("➕ Request", "request")
   .text("➡️", "next");
 
+/**
+ * Class to handle search and navigation conversation for the Jellyseerr bot.
+ */
 export class SearchConversation {
   private conversation: MyConversation;
   private ctx: MyContext;
@@ -20,6 +22,13 @@ export class SearchConversation {
   private query: string = "";
   private page: number = 1;
 
+  /**
+   * Static method to create and run a new instance of the SearchConversation class.
+   * Use it with createConversation() middleware.
+   *
+   * @param {MyConversation} conversation - The conversation instance.
+   * @param {MyContext} ctx - The context of the conversation.
+   */
   static async run(conversation: MyConversation, ctx: MyContext) {
     const searchConv = new SearchConversation(conversation, ctx);
     await searchConv.start();
@@ -30,7 +39,13 @@ export class SearchConversation {
     this.ctx = ctx;
   }
 
-  // Start the search conversation
+  /**
+   * Starts the search conversation.
+   *
+   * Initiates a search conversation by checking if there is a match in the context,
+   * performing a search based on the query, sending the initial template, and handling
+   * the results.
+   */
   async start() {
     if (!this.ctx.match) {
       return await this.ctx.reply(
@@ -47,21 +62,16 @@ export class SearchConversation {
     await this.handleResults();
   }
 
-  // Search the Jellyseerr API for results
-  private async search(
-    input: z.infer<typeof SearchInput>
-  ): Promise<SearchOutput> {
+  /**
+   * Searches the Jellyseerr API for results.
+   *
+   * @param {SearchInput} input - The search input parameters.
+   * @returns {Promise<SearchOutput>} A promise that resolves to the search results.
+   */
+  private async search(input: SearchInput): Promise<SearchOutput> {
     const parsed = SearchInput.parse(input);
-    const url = new URL(JELLYSEERR_URL + "/search");
+    const json = await fetchFromJellyseerr("/search", parsed);
 
-    Object.entries(parsed).forEach(([key, val]) =>
-      url.searchParams.append(key, encodeURIComponent(val))
-    );
-
-    const res = await fetch(url.toString(), {
-      headers: { "X-Api-Key": JELLYSEERR_KEY! },
-    });
-    const json = await res.json();
     const results = json.results as (components["schemas"]["TvResult"] &
       components["schemas"]["MovieResult"])[];
 
@@ -75,7 +85,12 @@ export class SearchConversation {
     );
   }
 
-  // Send the initial search result template
+  /**
+   * Sends the initial search result template.
+   *
+   * @param {SearchOutput[0]} result - The search result to be sent.
+   * @returns {Promise<import("grammy").Message>} A promise that resolves to the sent message.
+   */
   private async sendTemplate(result: SearchOutput[0]) {
     const text = createTemplate({
       title: result.title,
@@ -93,7 +108,12 @@ export class SearchConversation {
     return await this.ctx.reply(text, { reply_markup: keyboard });
   }
 
-  // Edit the message to show the new search result template
+  /**
+   * Edits the message to show the new search result template.
+   *
+   * @param {SearchOutput[0]} result - The search result to be shown.
+   * @returns {Promise<void>} A promise that resolves when the message is edited.
+   */
   private async editTemplate(result: SearchOutput[0]) {
     const text = createTemplate({
       title: result.title,
@@ -120,14 +140,18 @@ export class SearchConversation {
     );
   }
 
-  // Handle the results navigation and requests recursively
+  /**
+   * Handles the results navigation and requests recursively.
+   *
+   * Waits for callback queries and handles navigation (prev, next) and requests.
+   * Recursively calls itself to handle continuous user interaction.
+   */
   private async handleResults(): Promise<void> {
     this.ctx = await this.conversation.waitForCallbackQuery([
       "prev",
       "next",
       "request",
     ]);
-    await this.ctx.answerCallbackQuery();
 
     if (this.ctx.callbackQuery?.data === "request") {
       this.ctx.api.deleteMessage(this.ctx.chatId!, this.messageId);
@@ -146,7 +170,7 @@ export class SearchConversation {
       this.page++;
       const newResults = await this.search({
         query: this.query,
-        page: this.page,
+        page: this.page.toString(),
       });
       this.results = this.results.concat(newResults);
     }
@@ -155,42 +179,16 @@ export class SearchConversation {
     return this.handleResults(); // Recursively handle results
   }
 
-  // Update the index based on the action
+  /**
+   * Updates the index based on the action.
+   *
+   * @param {string | undefined} action - The action performed by the user (prev, next).
+   * @param {number} index - The current index.
+   * @returns {number} The updated index.
+   */
   private updateIndex(action: string | undefined, index: number): number {
     if (action === "next") index++;
     if (action === "prev") index--;
     return index;
   }
-}
-
-const SearchInput = z.object({
-  query: z.string(),
-  language: z.string().optional(),
-  page: z.number().or(z.string()).default(1).transform(String).optional(),
-});
-
-const SearchOutput = z.array(
-  z.object({
-    title: z.string(),
-    overview: z.string().optional(),
-    releaseDate: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-    posterPath: z
-      .string()
-      .optional()
-      .transform((val) => "https://image.tmdb.org/t/p/original" + val),
-  })
-);
-
-type SearchOutput = z.infer<typeof SearchOutput>;
-
-type TemplateInput = {
-  title: string;
-  overview: string;
-  releaseDate: string;
-};
-
-function createTemplate(input: TemplateInput) {
-  const releaseDate = "release date: " + input.releaseDate;
-  return [input.title, input.overview, releaseDate].join("\n\n");
 }

@@ -9,10 +9,8 @@ import {
 } from "@grammyjs/conversations";
 import type { HydrateFlavor } from "@grammyjs/hydrate";
 import { SearchConversation } from "./conversations/search";
+import type { MyContext } from "./utils/types";
 const { BOT_TOKEN } = env;
-
-export type MyContext = HydrateFlavor<Context & ConversationFlavor>;
-export type MyConversation = Conversation<MyContext>;
 
 const bot = new Bot<MyContext>(BOT_TOKEN);
 
