@@ -1,26 +1,10 @@
 import { Bot, InlineKeyboard } from "grammy";
 import type { components } from "../types/overseerr";
+import env from "../env";
 
-const BOT_TOKEN = process.env.BOT_TOKEN;
-const JELLYSEERR_URL = process.env.JELLYSEERR_URL;
-const JELLYSEERR_KEY = process.env.JELLYSEERR_KEY;
-
-if (typeof BOT_TOKEN === "undefined") {
-  throw new Error("BOT_TOKEN is not defined.");
-}
-
-if (typeof JELLYSEERR_URL === "undefined") {
-  throw new Error("JELLYSEERR_URL is not defined.");
-}
-
-if (typeof JELLYSEERR_KEY === "undefined") {
-  throw new Error("JELLYSEERR_KEY is not defined.");
-}
+const { BOT_TOKEN, JELLYSEERR_KEY, JELLYSEERR_URL } = env;
 
 const bot = new Bot(BOT_TOKEN);
-
-// Reply to any message with "Hi there!".
-// bot.on("message", (ctx) => ctx.reply("Hi there!"));
 
 bot.command("status", async (ctx) => {
   const res = await fetch(JELLYSEERR_URL + "/status");
@@ -43,28 +27,33 @@ bot.command("search", async (ctx) => {
 
   const [result] = await search(match);
 
+  if (!result) return;
+  const text = `📛 Name: ${result.name ?? result.title}\n
+ℹ️ ${result.overview}\n
+📅 Release Date: ${result.releaseDate ?? result.firstAirDate}
+`;
+
   const keyboard = new InlineKeyboard()
     .text("◀️", "prev")
-    .text("Request", "request")
+    .text("➕ Request", "request")
     .text("➡️", "next");
 
-  await ctx.replyWithPhoto(
-    "https://image.tmdb.org/t/p/w1920_and_h800_multi_faces//" +
-      result.posterPath!,
-    {
-      caption: result.overview,
-      reply_markup: keyboard,
-    }
-  );
+  if (result.posterPath)
+    return await ctx.replyWithPhoto(
+      "https://image.tmdb.org/t/p/original" + result.posterPath!,
+      { caption: text, reply_markup: keyboard }
+    );
+
+  await ctx.reply(text, { reply_markup: keyboard });
 });
 
 bot.start();
 
-async function search(title: string, language: string = "en") {
+async function search(query: string, language: string = "en") {
   const res = await fetch(
     JELLYSEERR_URL +
       "/search/?query=" +
-      title +
+      query +
       "&page=1" +
       "&language=" +
       language,
@@ -76,3 +65,9 @@ async function search(title: string, language: string = "en") {
   return json.results as (components["schemas"]["TvResult"] &
     components["schemas"]["MovieResult"])[];
 }
+
+bot.catch(({ ctx, message }) => {
+  // console.error(message);
+
+  ctx.reply("Something went wrong.");
+});
