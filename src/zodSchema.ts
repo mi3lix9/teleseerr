@@ -8,9 +8,7 @@ export const SearchInput = z.object({
 
 export const SearchOutput = z.array(
   z.object({
-    id: z.string().or(z.number()),
-    tvdbId: z.string().or(z.number()).optional(),
-    tmdbId: z.string().or(z.number()).optional(),
+    mediaId: z.number(),
     title: z.string(),
     overview: z.string().optional(),
     releaseDate: z.string().optional(),

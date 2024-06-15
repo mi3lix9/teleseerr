@@ -6,6 +6,8 @@ import type { components } from "../../types/overseerr";
 export type MyContext = Context & ConversationFlavor;
 export type MyConversation = Conversation<MyContext>;
 
+export type MediaType = "movie" | "tv";
+
 export type MovieResult = components["schemas"]["MovieResult"];
 export type TvResult = components["schemas"]["TvResult"];
 export type SearchResult = MovieResult & TvResult;

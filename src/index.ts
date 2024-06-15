@@ -4,6 +4,8 @@ import { conversations, createConversation } from "@grammyjs/conversations";
 import { SearchConversation } from "./conversations/search";
 import type { MyContext } from "./utils/types";
 import { COMMANDS } from "./utils/commands";
+import { fetchFromJellyseerr } from "./utils/fetchFromJellyseerr";
+import { search } from "./jellyseerr";
 
 const { BOT_TOKEN } = env;
 
@@ -44,3 +46,16 @@ bot.catch(({ ctx, message }) => {
 
   ctx.reply("Something went wrong.");
 });
+
+// const res = await search({ query: "one piece" });
+// console.log(res);
+
+// const json = await fetchFromJellyseerr("/request", {
+//   body: {
+//     mediaType: "movie",
+//     mediaId: 19576,
+//   },
+//   method: "POST",
+// });
+
+// console.log({ json });

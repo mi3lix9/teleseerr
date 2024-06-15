@@ -1,7 +1,10 @@
+import type { MediaType } from "./types";
+
 type TemplateInput = {
   title: string;
   overview: string;
   releaseDate: string;
+  mediaType: MediaType;
 };
 
 /**
@@ -9,5 +12,7 @@ type TemplateInput = {
  */
 export function createTemplate(input: TemplateInput): string {
   const releaseDate = "release date: " + input.releaseDate;
-  return [input.title, input.overview, releaseDate].join("\n\n");
+  return [input.title, input.overview, releaseDate, input.mediaType].join(
+    "\n\n"
+  );
 }

@@ -3,6 +3,7 @@ import { fetchFromJellyseerr } from "../utils/fetchFromJellyseerr";
 import { SearchInput, SearchOutput } from "../zodSchema";
 import { createTemplate } from "../utils/createTemplate";
 import type { MyConversation, MyContext, SearchResult } from "../utils/types";
+import { request, search } from "../jellyseerr";
 
 const keyboard = new InlineKeyboard()
   .text("◀️", "prev")
@@ -53,39 +54,12 @@ export class SearchConversation {
     }
 
     this.query = this.ctx.match as string;
-    this.results = await this.search({ query: this.query });
-    console.log(this.results);
+    this.results = await search({ query: this.query });
 
     const message = await this.sendTemplate(this.results[0]);
     this.messageId = message.message_id;
 
     await this.handleResults();
-  }
-
-  /**
-   * Searches the Jellyseerr API for results.
-   *
-   * @param {SearchInput} input - The search input parameters.
-   * @returns {Promise<SearchOutput>} A promise that resolves to the search results.
-   */
-  private async search(input: SearchInput): Promise<SearchOutput> {
-    const parsed = SearchInput.parse(input);
-    const json = await fetchFromJellyseerr("/search", parsed);
-
-    const results = json.results as SearchResult[];
-
-    return SearchOutput.parse(
-      results.map((r: SearchResult) => ({
-        id: r.id,
-        title: r.title || r.name,
-        overview: r.overview,
-        releaseDate: r.releaseDate ?? r.firstAirDate,
-        posterPath: r.posterPath,
-        mediaType: r.mediaType,
-        tmdbId: r.mediaInfo?.tmdbId ?? undefined,
-        tvdbId: r.mediaInfo?.tvdbId ?? undefined,
-      }))
-    );
   }
 
   /**
@@ -99,6 +73,7 @@ export class SearchConversation {
       title: result.title,
       overview: result.overview ?? "",
       releaseDate: result.releaseDate ?? "",
+      mediaType: result.mediaType,
     });
 
     if (result.posterPath) {
@@ -122,6 +97,7 @@ export class SearchConversation {
       title: result.title,
       overview: result.overview ?? "",
       releaseDate: result.releaseDate ?? "",
+      mediaType: result.mediaType,
     });
 
     if (result.posterPath) {
@@ -157,7 +133,17 @@ export class SearchConversation {
     ]);
 
     if (this.ctx.callbackQuery?.data === "request") {
-      this.ctx.api.deleteMessage(this.ctx.chatId!, this.messageId);
+      const { mediaType, mediaId } = this.results[this.index];
+      const ok = await request(mediaType, mediaId);
+
+      if (ok) {
+        await this.ctx.api.deleteMessage(this.ctx.chatId!, this.messageId);
+
+        await this.ctx.reply("Requested!");
+        return;
+      }
+
+      await this.ctx.reply("Somethig wrong happen");
       return;
     }
 
@@ -171,7 +157,7 @@ export class SearchConversation {
 
     if (this.index >= this.results.length) {
       this.page++;
-      const newResults = await this.search({
+      const newResults = await search({
         query: this.query,
         page: this.page.toString(),
       });
