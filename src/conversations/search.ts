@@ -1,9 +1,8 @@
 import { InlineKeyboard } from "grammy";
-import type { components } from "../../types/overseerr";
 import { fetchFromJellyseerr } from "../utils/fetchFromJellyseerr";
 import { SearchInput, SearchOutput } from "../zodSchema";
 import { createTemplate } from "../utils/createTemplate";
-import type { MyConversation, MyContext } from "../utils/types";
+import type { MyConversation, MyContext, SearchResult } from "../utils/types";
 
 const keyboard = new InlineKeyboard()
   .text("◀️", "prev")
@@ -55,6 +54,7 @@ export class SearchConversation {
 
     this.query = this.ctx.match as string;
     this.results = await this.search({ query: this.query });
+    console.log(this.results);
 
     const message = await this.sendTemplate(this.results[0]);
     this.messageId = message.message_id;
@@ -72,15 +72,18 @@ export class SearchConversation {
     const parsed = SearchInput.parse(input);
     const json = await fetchFromJellyseerr("/search", parsed);
 
-    const results = json.results as (components["schemas"]["TvResult"] &
-      components["schemas"]["MovieResult"])[];
+    const results = json.results as SearchResult[];
 
     return SearchOutput.parse(
-      results.map((r) => ({
-        title: r.title ?? r.name,
-        overview: r.overview ?? "",
+      results.map((r: SearchResult) => ({
+        id: r.id,
+        title: r.title || r.name,
+        overview: r.overview,
         releaseDate: r.releaseDate ?? r.firstAirDate,
-        posterPath: r.posterPath ?? "",
+        posterPath: r.posterPath,
+        mediaType: r.mediaType,
+        tmdbId: r.mediaInfo?.tmdbId ?? undefined,
+        tvdbId: r.mediaInfo?.tvdbId ?? undefined,
       }))
     );
   }
