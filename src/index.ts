@@ -1,15 +1,61 @@
+import { Bot, session } from "grammy";
+import env from "../env";
+import { conversations, createConversation } from "@grammyjs/conversations";
+import { SearchConversation } from "./conversations/search";
+import type { MyContext } from "./utils/types";
+import { COMMANDS } from "./utils/commands";
+import { fetchFromJellyseerr } from "./utils/fetchFromJellyseerr";
+import { search } from "./jellyseerr";
 
-import { Bot } from "grammy";
+const { BOT_TOKEN } = env;
 
-const BOT_TOKEN = process.env.BOT_TOKEN
+const bot = new Bot<MyContext>(BOT_TOKEN);
 
-if (typeof BOT_TOKEN === "undefined") {
-  throw new Error("BOT_TOKEN is not defined.")
-}
+// Install the session plugin.
+bot.use(
+  session({
+    initial() {
+      // return empty object for now
+      return {};
+    },
+  })
+);
 
-const bot = new Bot(BOT_TOKEN); // <-- put your bot token between the "" (https://t.me/BotFather)
+// Install the conversations plugin.
+bot.use(conversations());
 
-// Reply to any message with "Hi there!".
-bot.on("message", (ctx) => ctx.reply("Hi there!"));
+bot.command(["start"], async (ctx) => {
+  await ctx.reply("Hello!");
+  await ctx.api.setMyCommands(COMMANDS);
+});
 
-bot.start();
+bot.use(createConversation(SearchConversation.run, "searchConversation"));
+
+bot.command("search", async (ctx) => {
+  await ctx.conversation.exit();
+  await ctx.conversation.enter("searchConversation");
+});
+
+bot.start({
+  onStart: (info) =>
+    console.log("Bot started as https://t.me/" + info.username),
+});
+
+bot.catch(({ ctx, message }) => {
+  console.error(message);
+
+  ctx.reply("Something went wrong.");
+});
+
+// const res = await search({ query: "one piece" });
+// console.log(res);
+
+// const json = await fetchFromJellyseerr("/request", {
+//   body: {
+//     mediaType: "movie",
+//     mediaId: 19576,
+//   },
+//   method: "POST",
+// });
+
+// console.log({ json });
