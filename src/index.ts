@@ -3,6 +3,7 @@ import env from "../env";
 import { conversations, createConversation } from "@grammyjs/conversations";
 import { SearchConversation } from "./conversations/search";
 import type { MyContext } from "./utils/types";
+import { COMMANDS } from "./utils/commands";
 
 const { BOT_TOKEN } = env;
 
@@ -21,7 +22,10 @@ bot.use(
 // Install the conversations plugin.
 bot.use(conversations());
 
-bot.command(["start"], (ctx) => ctx.reply("Hello!"));
+bot.command(["start"], async (ctx) => {
+  await ctx.reply("Hello!");
+  await ctx.api.setMyCommands(COMMANDS);
+});
 
 bot.use(createConversation(SearchConversation.run, "searchConversation"));
 
@@ -30,7 +34,10 @@ bot.command("search", async (ctx) => {
   await ctx.conversation.enter("searchConversation");
 });
 
-bot.start();
+bot.start({
+  onStart: (info) =>
+    console.log("Bot started as https://t.me/" + info.username),
+});
 
 bot.catch(({ ctx, message }) => {
   console.error(message);
