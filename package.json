@@ -6,6 +6,7 @@
     "dev": "bun --watch src/index.ts",
     "build": "bun build src/index.ts --outdir ./out --target=bun",
     "start:build": "bun run out/index.js",
+    "start": "NODE_ENV=production bun src/index.ts",
     "generate": "bunx drizzle-kit generate",
     "push": "bunx drizzle-kit push"
   },
