@@ -4,13 +4,14 @@
   "type": "module",
   "scripts": {
     "dev": "bun --watch src/index.ts",
-    "gen": "bunx drizzle-kit generate",
-    "migrate": "bunx drizzle-kit migrate"
+    "build": "bun build src/index.ts --outdir ./out --target=bun",
+    "start:build": "bun run out/index.js",
+    "generate": "bunx drizzle-kit generate",
+    "push": "bunx drizzle-kit push"
   },
   "devDependencies": {
     "@libsql/client": "^0.6.2",
     "@types/bun": "latest",
-    "better-sqlite3": "^11.0.0",
     "drizzle-kit": "^0.22.4"
   },
   "peerDependencies": {
