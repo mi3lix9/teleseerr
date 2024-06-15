@@ -3,7 +3,7 @@ name: Build and Push to GHCR
 on:
   push:
     branches:
-      - main
+      - develop
 
 jobs:
   build_and_push:
@@ -21,8 +21,8 @@ jobs:
         run: |
           docker login ghcr.io -u ${{ github.actor }} \
           -p ${{ secrets.GITHUB_TOKEN }}
-          docker build -t ghcr.io/${{ github.repository }}:latest .
-          docker push ghcr.io/${{ github.repository }}:latest
+          docker build -t ghcr.io/${{ github.repository }}:develop .
+          docker push ghcr.io/${{ github.repository }}:develop
 
 # name: Build and Push Docker Image
 

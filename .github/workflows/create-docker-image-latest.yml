@@ -21,8 +21,8 @@ jobs:
         run: |
           docker login ghcr.io -u ${{ github.actor }} \
           -p ${{ secrets.GITHUB_TOKEN }}
-          docker build -t ghcr.io/${{ github.repository }}:develop .
-          docker push ghcr.io/${{ github.repository }}:develop
+          docker build -t ghcr.io/${{ github.repository }}:latest .
+          docker push ghcr.io/${{ github.repository }}:latest
 
 # name: Build and Push Docker Image
 
