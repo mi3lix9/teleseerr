@@ -20,10 +20,10 @@ VOLUME ["/app/config"]
 RUN bun install
 
 # Build the application
-RUN bun run push
-RUN bun run build
+# RUN bun run push
+# RUN bun run build
 # Expose port (adjust if necessary)
 # EXPOSE 3000
 
 # Start the application
-CMD ["bun", "start:build"]
+CMD ["bun", "start"]
