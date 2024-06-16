@@ -2,14 +2,18 @@ import { Bot, session } from "grammy";
 import env from "../env";
 import { conversations, createConversation } from "@grammyjs/conversations";
 import { SearchConversation } from "./conversations/search";
-import type { MyContext } from "./utils/types";
+import type { MyContext, SearchResult } from "./utils/types";
 import { COMMANDS } from "./utils/commands";
-import { fetchFromJellyseerr } from "./utils/fetchFromJellyseerr";
 import { search } from "./jellyseerr";
+import type { InlineQueryResultArticle } from "grammy/types";
+import { createTemplate } from "./utils/createTemplate";
+import { inlineQueryHandler } from "./utils/inlineQueryHandler";
 
 const { BOT_TOKEN } = env;
 
 const bot = new Bot<MyContext>(BOT_TOKEN);
+
+bot.inlineQuery(/.*/, inlineQueryHandler);
 
 // Install the session plugin.
 bot.use(
@@ -46,16 +50,3 @@ bot.catch(({ ctx, message }) => {
 
   ctx.reply("Something went wrong.");
 });
-
-// const res = await search({ query: "one piece" });
-// console.log(res);
-
-// const json = await fetchFromJellyseerr("/request", {
-//   body: {
-//     mediaType: "movie",
-//     mediaId: 19576,
-//   },
-//   method: "POST",
-// });
-
-// console.log({ json });
