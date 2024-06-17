@@ -15,8 +15,13 @@ export const SearchOutput = z.array(
     tags: z.array(z.string()).optional(),
     posterPath: z
       .string()
+      .or(z.null())
       .optional()
-      .transform((val) => "https://image.tmdb.org/t/p/original" + val),
+      .transform((val) =>
+        typeof val === "string"
+          ? "https://image.tmdb.org/t/p/original" + val
+          : undefined
+      ),
     mediaType: z.enum(["movie", "tv"]),
   })
 );

@@ -15,14 +15,16 @@ export async function search(input: SearchInput): Promise<SearchOutput> {
   const results = json.results as SearchResult[];
 
   return SearchOutput.parse(
-    results.map((r: SearchResult) => ({
-      mediaId: r.id,
-      title: r.title || r.name,
-      overview: r.overview,
-      releaseDate: r.releaseDate ?? r.firstAirDate,
-      posterPath: r.posterPath,
-      mediaType: r.mediaType,
-    }))
+    results
+      .filter((res) => res.mediaType !== "person")
+      .map((r: SearchResult) => ({
+        mediaId: r.id,
+        title: r.title || r.name,
+        overview: r.overview,
+        releaseDate: r.releaseDate ?? r.firstAirDate,
+        posterPath: r.posterPath,
+        mediaType: r.mediaType,
+      }))
   );
 }
 
