@@ -1,52 +1,19 @@
-import { Bot, session } from "grammy";
-import env from "../env";
-import { conversations, createConversation } from "@grammyjs/conversations";
-import { SearchConversation } from "./conversations/search";
-import type { MyContext, SearchResult } from "./utils/types";
-import { COMMANDS } from "./utils/commands";
-import { search } from "./jellyseerr";
-import type { InlineQueryResultArticle } from "grammy/types";
-import { createTemplate } from "./utils/createTemplate";
-import { inlineQueryHandler } from "./utils/inlineQueryHandler";
+import { webhookCallback } from "grammy";
+import { Hono } from "hono";
+import { bot } from "./bot";
+import env from "~/env";
 
-const { BOT_TOKEN } = env;
+const app = new Hono();
 
-const bot = new Bot<MyContext>(BOT_TOKEN);
+if (process.env.NODE_ENV === "PRODUCTION") {
+  app.use(webhookCallback(bot, "hono"));
+} else {
+  bot.start({
+    onStart: (info) =>
+      console.log("Bot started as https://t.me/" + info.username),
+  });
+}
 
-bot.inlineQuery(/.*/, inlineQueryHandler);
+app.get("/", (c) => c.text("Hello Bun!"));
 
-// Install the session plugin.
-bot.use(
-  session({
-    initial() {
-      // return empty object for now
-      return {};
-    },
-  })
-);
-
-// Install the conversations plugin.
-bot.use(conversations());
-
-bot.command(["start"], async (ctx) => {
-  await ctx.reply("Hello!");
-  await ctx.api.setMyCommands(COMMANDS);
-});
-
-bot.use(createConversation(SearchConversation.run, "searchConversation"));
-
-bot.command("search", async (ctx) => {
-  await ctx.conversation.exit();
-  await ctx.conversation.enter("searchConversation");
-});
-
-bot.start({
-  onStart: (info) =>
-    console.log("Bot started as https://t.me/" + info.username),
-});
-
-bot.catch(({ ctx, message }) => {
-  console.error(message);
-
-  ctx.reply("Something went wrong.");
-});
+export default app;
