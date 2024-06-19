@@ -1,5 +1,5 @@
 import type { InlineQueryResultArticle } from "grammy/types";
-import { search } from "../jellyseerr";
+import { search } from "app:jellyseerr";
 import { createTemplate } from "./createTemplate";
 import type { MyContext } from "./types";
 import type { Filter } from "grammy";
