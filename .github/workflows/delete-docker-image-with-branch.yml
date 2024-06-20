@@ -1,0 +1,27 @@
+name: Remove Image from GHCR
+
+on:
+  delete:
+    branches:
+      - "**"
+
+jobs:
+  remove_image:
+    permissions:
+      packages: write
+      contents: read
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Authenticate to GitHub Container Registry
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Remove Image from GHCR
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+          docker pull $IMAGE_NAME || echo "Image not found, skipping removal"
+          docker rmi $IMAGE_NAME || echo "Failed to remove image locally"
+          curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          "https://ghcr.io/v2/${{ github.repository }}/manifests/$(docker manifest inspect $IMAGE_NAME -v | jq -r .Descriptor.digest)" \
+          || echo "Failed to remove image from GHCR"
