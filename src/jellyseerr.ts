@@ -1,6 +1,7 @@
+import type { components } from "../types/overseerr";
 import { fetchFromJellyseerr } from "./utils/fetchFromJellyseerr";
 import type { MediaType, SearchResult } from "./utils/types";
-import { SearchInput, SearchOutput } from "./zodSchema";
+import { SearchInput, SearchOutput, TvDetails } from "./zodSchema";
 
 /**
  * Searches the Jellyseerr API for results.
@@ -24,6 +25,8 @@ export async function search(input: SearchInput): Promise<SearchOutput> {
         releaseDate: r.releaseDate ?? r.firstAirDate,
         posterPath: r.posterPath,
         mediaType: r.mediaType,
+        tmdbId: r.mediaInfo?.tmdbId || undefined,
+        tvdbId: r.mediaInfo?.tvdbId || undefined,
       }))
   );
 }
@@ -35,4 +38,29 @@ export async function request(mediaType: MediaType, mediaId: number) {
   });
 
   return status === 201;
+}
+
+export async function fetchTvDetails(id: number): Promise<TvDetails> {
+  const { json: tvRaw } = await fetchFromJellyseerr<
+    components["schemas"]["TvDetails"]
+  >("/tv/" + id);
+
+  const tvDetails: TvDetails = {
+    id: tvRaw.id!,
+    overview: tvRaw.overview!,
+    title: tvRaw.name!,
+    genres: tvRaw.genres?.map((genre) => genre.name!)!,
+    firstAirDate: tvRaw.firstAirDate!,
+    lastAirDate: tvRaw.lastAirDate!,
+    originalTitle: tvRaw.originalName!,
+    seasons: tvRaw.seasons?.map((season) => ({
+      name: season.name!,
+      airDate: season.airDate! || undefined,
+      episodeCount: season.episodeCount!,
+      seasonNumber: season.seasonNumber!,
+    }))!,
+    // spokenLanguages: tvRaw.spokenLanguages![0].englishName!,
+  };
+
+  return TvDetails.parse(tvDetails);
 }

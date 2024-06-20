@@ -3,7 +3,7 @@ import { fetchFromJellyseerr } from "../utils/fetchFromJellyseerr";
 import { SearchInput, SearchOutput } from "../zodSchema";
 import { createTemplate } from "../utils/createTemplate";
 import type { MyConversation, MyContext, SearchResult } from "../utils/types";
-import { request, search } from "../jellyseerr";
+import { fetchTvDetails, request, search } from "../jellyseerr";
 
 const keyboard = new InlineKeyboard()
   .text("◀️", "prev")
@@ -181,3 +181,6 @@ export class SearchConversation {
     return index;
   }
 }
+
+const res = await fetchTvDetails(37854);
+console.log(res);
