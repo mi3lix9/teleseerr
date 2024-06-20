@@ -3,17 +3,17 @@
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
-    "dev": "bun --watch src/index.ts",
-    "build": "bun build src/index.ts --outdir ./out --target=bun",
-    "start:build": "bun run out/index.js",
-    "start": "NODE_ENV=production bun src/index.ts",
-    "generate": "bunx drizzle-kit generate",
-    "push": "bunx drizzle-kit push"
+    "dev": "tsx --watch src/index.ts",
+    "start": "NODE_ENV=production tsx src/index.ts",
+    "generate": "bun drizzle-kit generate",
+    "push": "bun drizzle-kit push"
   },
   "devDependencies": {
     "@libsql/client": "^0.6.2",
-    "@types/bun": "latest",
-    "drizzle-kit": "^0.22.4"
+    "@types/node": "^20.14.6",
+    "drizzle-kit": "^0.22.4",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.15.6"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
@@ -21,6 +21,7 @@
   "dependencies": {
     "@grammyjs/conversations": "^1.2.0",
     "@grammyjs/hydrate": "^1.4.1",
+    "dotenv": "^16.4.5",
     "drizzle-orm": "^0.31.1",
     "grammy": "^1.24.1",
     "zod": "^3.23.8"
