@@ -1,9 +1,15 @@
-FROM oven/bun:debian
+FROM node:lts
 
-# Config Bun
-ENV PATH="~/.bun/bin:${PATH}"
-RUN ln -s /usr/local/bin/bun /usr/local/bin/node
+# Install basic development tools
+RUN apt update && apt install -y less man-db sudo
 
+# Ensure default `node` user has access to `sudo`
+ARG USERNAME=node
+RUN echo "$USERNAME ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME \
+  && chmod 0440 /etc/sudoers.d/$USERNAME
+
+# Install pnpm
+RUN npm install -g pnpm
 
 # Set working directory
 WORKDIR /app
@@ -16,14 +22,8 @@ RUN mkdir -p /app/config
 # Set up volume for config, logs, and database
 VOLUME ["/app/config"]
 
-# Install dependencies
-RUN bun install
-
-# Build the application
-# RUN bun run push
-# RUN bun run build
-# Expose port (adjust if necessary)
-# EXPOSE 3000
+# Install dependencies using pnpm
+RUN pnpm install
 
 # Start the application
-CMD ["bun", "start"]
+CMD ["pnpm", "start"]
