@@ -1,7 +1,13 @@
 import type { components } from "../types/overseerr";
 import { fetchFromJellyseerr } from "./utils/fetchFromJellyseerr";
 import type { MediaType, SearchResult } from "./utils/types";
-import { SearchInput, SearchOutput, TvDetails } from "./zodSchema";
+import {
+  MovieDetails,
+  SearchInput,
+  SearchOutput,
+  TvDetails,
+  type MediaDetails,
+} from "./zodSchema";
 
 /**
  * Searches the Jellyseerr API for results.
@@ -46,11 +52,12 @@ export async function fetchTvDetails(id: number): Promise<TvDetails> {
   >("/tv/" + id);
 
   const tvDetails: TvDetails = {
+    type: "tv",
     id: tvRaw.id!,
     overview: tvRaw.overview!,
     title: tvRaw.name!,
     genres: tvRaw.genres?.map((genre) => genre.name!)!,
-    firstAirDate: tvRaw.firstAirDate!,
+    releaseDate: tvRaw.firstAirDate!,
     lastAirDate: tvRaw.lastAirDate!,
     originalTitle: tvRaw.originalName!,
     seasons: tvRaw.seasons?.map((season) => ({
@@ -59,8 +66,40 @@ export async function fetchTvDetails(id: number): Promise<TvDetails> {
       episodeCount: season.episodeCount!,
       seasonNumber: season.seasonNumber!,
     }))!,
-    // spokenLanguages: tvRaw.spokenLanguages![0].englishName!,
+    spokenLanguages: tvRaw.spokenLanguages![0].englishName!,
+    status: tvRaw.status! as TvDetails["status"],
+    posterPath: tvRaw.posterPath,
   };
 
   return TvDetails.parse(tvDetails);
+}
+
+export async function fetchMovieDetails(id: number): Promise<MovieDetails> {
+  const { json: tvRaw } = await fetchFromJellyseerr<
+    components["schemas"]["MovieDetails"]
+  >("/movie/" + id);
+
+  const movieDetails: MovieDetails = {
+    type: "movie",
+    id: tvRaw.id!,
+    overview: tvRaw.overview!,
+    title: tvRaw.title!,
+    genres: tvRaw.genres?.map((genre) => genre.name!)!,
+    releaseDate: tvRaw.releaseDate!,
+    originalTitle: tvRaw.originalTitle!,
+    spokenLanguages: tvRaw.spokenLanguages![0].englishName!,
+    posterPath: tvRaw.posterPath,
+  };
+
+  return MovieDetails.parse(movieDetails);
+}
+
+export async function fetchMediaDetails(
+  type: "tv" | "movie",
+  id: number
+): Promise<MediaDetails> {
+  if (type === "movie") return await fetchMovieDetails(id);
+  if (type === "tv") return await fetchTvDetails(id);
+
+  throw new Error("Type is not correct.");
 }

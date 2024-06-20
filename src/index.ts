@@ -5,7 +5,8 @@ import { SearchConversation } from "./conversations/search";
 import type { MyContext } from "./utils/types";
 import { COMMANDS } from "./utils/commands";
 import { inlineQueryHandler } from "./utils/inlineQueryHandler";
-import { search } from "./jellyseerr";
+import { fetchMediaDetails, fetchTvDetails, search } from "./jellyseerr";
+import type { MediaDetails } from "./zodSchema";
 
 const { BOT_TOKEN } = env;
 

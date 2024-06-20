@@ -1,9 +1,8 @@
 import { InlineKeyboard } from "grammy";
-import { fetchFromJellyseerr } from "../utils/fetchFromJellyseerr";
-import { SearchInput, SearchOutput } from "../zodSchema";
+import { SearchOutput, type MediaDetails } from "../zodSchema";
 import { createTemplate } from "../utils/createTemplate";
 import type { MyConversation, MyContext, SearchResult } from "../utils/types";
-import { fetchTvDetails, request, search } from "../jellyseerr";
+import { fetchMediaDetails, request, search } from "../jellyseerr";
 
 const keyboard = new InlineKeyboard()
   .text("◀️", "prev")
@@ -56,7 +55,12 @@ export class SearchConversation {
     this.query = this.ctx.match as string;
     this.results = await search({ query: this.query });
 
-    const message = await this.sendTemplate(this.results[0]);
+    const media = await fetchMediaDetails(
+      this.results[0].mediaType,
+      this.results[0].mediaId
+    );
+    // TODO: Edit this function to accept MediaDetails type.
+    const message = await this.sendTemplate(media);
     this.messageId = message.message_id;
 
     await this.handleResults();
@@ -65,15 +69,15 @@ export class SearchConversation {
   /**
    * Sends the initial search result template.
    *
-   * @param {SearchOutput[0]} result - The search result to be sent.
+   * @param {MediaDetails} result - The search result to be sent.
    * @returns {Promise<import("grammy").Message>} A promise that resolves to the sent message.
    */
-  private async sendTemplate(result: SearchOutput[0]) {
+  private async sendTemplate(result: MediaDetails) {
     const text = createTemplate({
       title: result.title,
       overview: result.overview ?? "",
       releaseDate: result.releaseDate ?? "",
-      mediaType: result.mediaType,
+      mediaType: result.type,
     });
 
     if (result.posterPath) {
@@ -89,15 +93,15 @@ export class SearchConversation {
   /**
    * Edits the message to show the new search result template.
    *
-   * @param {SearchOutput[0]} result - The search result to be shown.
+   * @param {MediaDetails} result - The search result to be shown.
    * @returns {Promise<void>} A promise that resolves when the message is edited.
    */
-  private async editTemplate(result: SearchOutput[0]) {
+  private async editTemplate(result: MediaDetails) {
     const text = createTemplate({
       title: result.title,
       overview: result.overview ?? "",
       releaseDate: result.releaseDate ?? "",
-      mediaType: result.mediaType,
+      mediaType: result.type,
     });
 
     if (result.posterPath) {
@@ -163,8 +167,11 @@ export class SearchConversation {
       });
       this.results = this.results.concat(newResults);
     }
-
-    await this.editTemplate(this.results[this.index]);
+    const media = await fetchMediaDetails(
+      this.results[this.index].mediaType,
+      this.results[this.index].mediaId
+    );
+    await this.editTemplate(media);
     return this.handleResults(); // Recursively handle results
   }
 
@@ -181,6 +188,3 @@ export class SearchConversation {
     return index;
   }
 }
-
-const res = await fetchTvDetails(37854);
-console.log(res);
