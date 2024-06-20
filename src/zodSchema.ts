@@ -1,4 +1,4 @@
-import { array, z } from "zod";
+import { z } from "zod";
 
 export const SearchInput = z.object({
   query: z.string(),
@@ -18,7 +18,6 @@ export const SearchOutput = z.array(
     posterPath: z
       .string()
       .or(z.null())
-      .optional()
       .transform((val) =>
         typeof val === "string"
           ? "https://image.tmdb.org/t/p/original" + val

@@ -1,6 +1,6 @@
 import type { components } from "../types/overseerr";
 import { fetchFromJellyseerr } from "./utils/fetchFromJellyseerr";
-import type { MediaType, SearchResult } from "./utils/types";
+import type { SearchResult } from "./utils/types";
 import {
   MovieDetails,
   SearchInput,

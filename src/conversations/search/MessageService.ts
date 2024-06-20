@@ -2,7 +2,6 @@ import { InlineKeyboard } from "grammy";
 import { createTemplate } from "../../utils/createTemplate";
 import type { MyContext } from "../../utils/types";
 import type { MediaDetails } from "../../zodSchema";
-import type { Message } from "grammy/types";
 
 const keyboard = new InlineKeyboard()
   .text("◀️", "prev")
