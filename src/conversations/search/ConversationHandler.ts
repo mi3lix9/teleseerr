@@ -40,7 +40,7 @@ export class SearchConversation {
 
   private async updateMessage() {
     const media = await this.searchService.fetchMediaDetails(this.index);
-    const message = await this.messageService.sendTemplate(media);
+    const message = await this.messageService.upsertMessage(media);
   }
 
   private async handleResults(): Promise<void> {

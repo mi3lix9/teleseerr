@@ -17,17 +17,22 @@ export class MessageService {
     this.ctx = ctx;
   }
 
-  async sendTemplate(media: MediaDetails): Promise<void> {
+  async upsertMessage(media: MediaDetails): Promise<void> {
+    if (this.messageId === 0) return this.sendMessage(media);
+    return this.updateMessage(media);
+  }
+
+  private async sendMessage(media: MediaDetails) {
     const text = createTemplate(media);
+    const message = await this.ctx.replyWithPhoto(media.posterPath!, {
+      caption: text,
+      reply_markup: keyboard,
+    });
+    return this.setMessageId(message.message_id);
+  }
 
-    if (this.messageId === 0) {
-      const message = await this.ctx.replyWithPhoto(media.posterPath!, {
-        caption: text,
-        reply_markup: keyboard,
-      });
-      return this.setMessageId(message.message_id);
-    }
-
+  private async updateMessage(media: MediaDetails) {
+    const text = createTemplate(media);
     await this.ctx.api.editMessageMedia(
       this.ctx.chatId!,
       this.messageId,
@@ -36,29 +41,7 @@ export class MessageService {
     );
   }
 
-  async editTemplate(media: MediaDetails): Promise<void> {
-    const text = createTemplate(media);
-
-    if (media.posterPath) {
-      await this.ctx.api.editMessageMedia(
-        this.ctx.chatId!,
-        this.messageId,
-        { media: media.posterPath, type: "photo", caption: text },
-        { reply_markup: keyboard }
-      );
-    } else {
-      await this.ctx.api.editMessageText(
-        this.ctx.chatId!,
-        this.messageId,
-        text,
-        {
-          reply_markup: keyboard,
-        }
-      );
-    }
-  }
-
-  setMessageId(messageId: number): void {
+  private setMessageId(messageId: number): void {
     this.messageId = messageId;
   }
 
