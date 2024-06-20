@@ -1,11 +1,14 @@
-FROM oven/bun:debian
+FROM node:lts
 
-# Config Bun
-ENV PATH="~/.bun/bin:${PATH}"
-RUN ln -s /usr/local/bin/bun /usr/local/bin/node
+# Install basic development tools
+RUN apt update && apt install -y less man-db sudo
 
-# Update packages
-RUN apt-get update
+# Ensure default `node` user has access to `sudo`
+ARG USERNAME=node
+RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+  && chmod 0440 /etc/sudoers.d/$USERNAME
 
-# Install Git
-RUN apt-get update && apt-get install -y git
+RUN wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="$(which bash)" bash -
+
+# Set `DEVCONTAINER` environment variable to help with orientation
+ENV DEVCONTAINER=true
