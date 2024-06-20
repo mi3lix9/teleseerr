@@ -1,4 +1,4 @@
-FROM oven/bun:debian
+FROM oven/bun:1.1.8-debian
 
 # Config Bun
 ENV PATH="~/.bun/bin:${PATH}"
@@ -17,11 +17,11 @@ RUN mkdir -p /app/config
 VOLUME ["/app/config"]
 
 # Install dependencies
-RUN bun install
+RUN bun install --production
 
 # Build the application
 # RUN bun run push
-# RUN bun run build
+RUN bun run build
 # Expose port (adjust if necessary)
 # EXPOSE 3000
 
