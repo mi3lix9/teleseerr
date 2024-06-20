@@ -1,0 +1,30 @@
+name: Build and Push to GHCR
+
+on:
+  push:
+    branches:
+      - "develop"
+      - "main"
+
+jobs:
+  build_and_push:
+    permissions:
+      packages: write
+      contents: read
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build and Push the Image to GHCR
+        run: |
+          docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+          if [ "${{ github.ref_name }}" == "main" ]; then
+            TAG="latest"
+          else
+            TAG="${{ github.ref_name }}"
+          fi
+          docker build -t ghcr.io/${{ github.repository }}:$TAG .
+          docker push ghcr.io/${{ github.repository }}:$TAG

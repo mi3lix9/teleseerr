@@ -11,5 +11,10 @@
 node_modules/
 jspm_packages/
 
+# Develolpment directories
+.devcontainer
+.github
+.vscode
+out
 # config file
 config
