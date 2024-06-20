@@ -1,10 +1,10 @@
 import { Bot, session } from "grammy";
 import env from "../env";
 import { conversations, createConversation } from "@grammyjs/conversations";
-import { SearchConversation } from "./conversations/search";
 import type { MyContext } from "./utils/types";
 import { COMMANDS } from "./utils/commands";
 import { inlineQueryHandler } from "./utils/inlineQueryHandler";
+import { SearchConversation } from "./conversations/search/ConversationHandler";
 
 const { BOT_TOKEN } = env;
 
