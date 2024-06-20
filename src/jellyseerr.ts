@@ -37,9 +37,19 @@ export async function search(input: SearchInput): Promise<SearchOutput> {
   );
 }
 
-export async function request(mediaType: MediaType, mediaId: number) {
+export async function request(media: MediaDetails) {
+  if (media.type === "tv") {
+    return await fetchFromJellyseerr("/request", {
+      body: {
+        mediaType: media.type,
+        mediaId: media.id,
+        seasons: media.seasons.map((season) => season.seasonNumber),
+      },
+      method: "POST",
+    });
+  }
   const { status } = await fetchFromJellyseerr("/request", {
-    body: { mediaType, mediaId },
+    body: { mediaType: media.type, mediaId: media.id },
     method: "POST",
   });
 

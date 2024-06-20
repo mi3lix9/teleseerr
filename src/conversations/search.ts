@@ -138,7 +138,8 @@ export class SearchConversation {
 
     if (this.ctx.callbackQuery?.data === "request") {
       const { mediaType, mediaId } = this.results[this.index];
-      const ok = await request(mediaType, mediaId);
+      const media = await fetchMediaDetails(mediaType, mediaId);
+      const ok = await request(media);
 
       if (ok) {
         await this.ctx.api.deleteMessage(this.ctx.chatId!, this.messageId);
