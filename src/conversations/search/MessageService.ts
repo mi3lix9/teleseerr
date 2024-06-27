@@ -3,6 +3,11 @@ import { createTemplate } from "../../utils/createTemplate";
 import type { MyContext } from "../../utils/types";
 import type { MediaDetails } from "../../zodSchema";
 
+export type UpsertOptions = {
+  message: string;
+  withKeyboard: boolean;
+};
+
 const keyboard = new InlineKeyboard()
   .text("◀️", "prev")
   .text("➕ Request", "request")
@@ -16,9 +21,12 @@ export class MessageService {
     this.ctx = ctx;
   }
 
-  async upsertMessage(media: MediaDetails): Promise<void> {
+  async upsertMessage(
+    media: MediaDetails,
+    options?: UpsertOptions
+  ): Promise<void> {
     if (this.messageId === 0) return this.sendMessage(media);
-    return this.updateMessage(media);
+    return this.updateMessage(media, options);
   }
 
   private async sendMessage(media: MediaDetails) {
@@ -30,13 +38,16 @@ export class MessageService {
     return this.setMessageId(message.message_id);
   }
 
-  private async updateMessage(media: MediaDetails) {
-    const text = createTemplate(media);
+  private async updateMessage(media: MediaDetails, options?: UpsertOptions) {
+    let text = createTemplate(media);
+    if (options?.message) {
+      text += "\n\n" + options.message;
+    }
     await this.ctx.api.editMessageMedia(
       this.ctx.chatId!,
       this.messageId,
       { media: media.posterPath!, type: "photo", caption: text },
-      { reply_markup: keyboard }
+      { reply_markup: options?.withKeyboard ? keyboard : undefined }
     );
   }
 

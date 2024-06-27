@@ -1,6 +1,6 @@
 import { request } from "../../jellyseerr";
 import type { MyConversation, MyContext } from "../../utils/types";
-import { MessageService } from "./MessageService";
+import { MessageService, type UpsertOptions } from "./MessageService";
 import { SearchService } from "./SearchService";
 
 export class SearchConversation {
@@ -38,9 +38,9 @@ export class SearchConversation {
     await this.handleResults();
   }
 
-  private async updateMessage() {
+  private async updateMessage(options?: UpsertOptions) {
     const media = await this.searchService.fetchMediaDetails(this.index);
-    const message = await this.messageService.upsertMessage(media);
+    const message = await this.messageService.upsertMessage(media, options);
   }
 
   private async handleResults(): Promise<void> {
@@ -55,11 +55,15 @@ export class SearchConversation {
       const ok = await request(media);
 
       if (ok) {
-        await this.ctx.api.deleteMessage(
-          this.ctx.chatId!,
-          this.messageService.getMessageId()
-        );
-        await this.ctx.reply("Requested!");
+        await this.updateMessage({
+          message: "Requested!",
+          withKeyboard: false,
+        });
+        // await this.ctx.api.deleteMessage(
+        //   this.ctx.chatId!,
+        //   this.messageService.getMessageId()
+        // );
+        // await this.ctx.reply("Requested!");
         return;
       }
 
