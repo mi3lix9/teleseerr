@@ -61,6 +61,7 @@ export async function fetchFromJellyseerr<T = any>(
       "Content-Type": "application/json",
     },
   };
+  console.log(body);
 
   if (body) fetchOptions.body = JSON.stringify(body);
 
@@ -69,7 +70,8 @@ export async function fetchFromJellyseerr<T = any>(
 
   // Check for HTTP errors
   if (!res.ok) {
-    throw new Error(`Error: ${res.status} ${res.statusText}`);
+    const error = await res.json();
+    throw new Error(`Error: ${res.status} ${error.message}`);
   }
 
   // Return the JSON response
