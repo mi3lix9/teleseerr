@@ -70,12 +70,14 @@ export async function fetchTvDetails(id: number): Promise<TvDetails> {
     releaseDate: tvRaw.firstAirDate!,
     lastAirDate: tvRaw.lastAirDate!,
     originalTitle: tvRaw.originalName!,
-    seasons: tvRaw.seasons?.map((season) => ({
-      name: season.name!,
-      airDate: season.airDate! || undefined,
-      episodeCount: season.episodeCount!,
-      seasonNumber: season.seasonNumber!,
-    }))!,
+    seasons: tvRaw.seasons
+      ?.filter((season) => season.seasonNumber !== 0)
+      .map((season) => ({
+        name: season.name!,
+        airDate: season.airDate! || undefined,
+        episodeCount: season.episodeCount!,
+        seasonNumber: season.seasonNumber!,
+      }))!,
     spokenLanguages: tvRaw.spokenLanguages![0].englishName!,
     status: tvRaw.status! as TvDetails["status"],
     posterPath: tvRaw.posterPath,
